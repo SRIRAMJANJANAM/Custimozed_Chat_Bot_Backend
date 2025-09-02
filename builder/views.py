@@ -23,7 +23,6 @@ from django.contrib.auth.models import User
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import serializers
 
-
 class ChatbotViewSet(viewsets.ModelViewSet):
     serializer_class = ChatbotSerializer
     permission_classes = [IsAuthenticated]
@@ -60,8 +59,11 @@ class ChatbotViewSet(viewsets.ModelViewSet):
             node.delete()
         return Response({"file_url": path})
 
-    @action(detail=True, methods=["post"], permission_classes=[AllowAny])
+    @action(detail=True, methods=["post"], permission_classes=[AllowAny], authentication_classes=[])
     def run(self, request, pk=None):
+        print(f"User authenticated? {request.user.is_authenticated}")
+        print(f"User: {request.user}")
+
         try:
             chatbot = Chatbot.objects.get(pk=pk)
         except Chatbot.DoesNotExist:
@@ -344,21 +346,11 @@ class ChatbotViewSet(viewsets.ModelViewSet):
                         chatbot=chatbot,
                         from_node_id=from_node_id,
                         to_node_id=to_node_id,
-                        condition_value=e.get("label", "+"),
+                        condition_key=e.get("condition_key"),
+                        condition_value=e.get("condition_value"),
                     )
         
-        # Reload the chatbot with all related data
-        chatbot.refresh_from_db()
-        serializer = self.get_serializer(chatbot)
-        return Response({"ok": True, "node_id_map": id_map, "chatbot": serializer.data}, status=status.HTTP_200_OK)
-    
-    @action(detail=True, methods=['get'])
-    def uploaded_files(self, request, pk=None):
-        """Get all files uploaded to this chatbot"""
-        chatbot = self.get_object()
-        files = UploadedFile.objects.filter(chatbot=chatbot)
-        serializer = UploadedFileSerializer(files, many=True, context={'request': request})
-        return Response(serializer.data)
+        return Response({"success": True})
 
 
 class NodeViewSet(viewsets.ModelViewSet):
