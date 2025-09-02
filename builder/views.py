@@ -1,4 +1,3 @@
-# views.py
 import json
 import uuid
 import base64
