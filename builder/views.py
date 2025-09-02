@@ -337,7 +337,7 @@ class ChatbotViewSet(viewsets.ModelViewSet):
             # Delete all existing connections
             chatbot.connections.all().delete()
             
-            # Create new connections
+            # Create new connections (FIXED: removed condition_key parameter)
             for e in edges:
                 from_node_id = id_map.get(e.get("source"))
                 to_node_id = id_map.get(e.get("target"))
@@ -346,8 +346,7 @@ class ChatbotViewSet(viewsets.ModelViewSet):
                         chatbot=chatbot,
                         from_node_id=from_node_id,
                         to_node_id=to_node_id,
-                        condition_key=e.get("condition_key"),
-                        condition_value=e.get("condition_value"),
+                        condition_value=e.get("label") or e.get("condition_value"),  # Use label from frontend
                     )
         
         return Response({"success": True})
